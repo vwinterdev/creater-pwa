@@ -1,0 +1,16 @@
+# Лежит на VPS в /opt/myapp, образ приходит из deploy.yml через APP_IMAGE
+services:
+  app:
+    image: ${APP_IMAGE}
+    container_name: my-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
