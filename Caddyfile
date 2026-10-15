@@ -1,0 +1,4 @@
+site.vwinterdev.top {
+    root * /srv
+    file_server
+}

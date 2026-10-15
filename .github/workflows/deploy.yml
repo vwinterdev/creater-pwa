@@ -1,0 +1,59 @@
+name: Deploy to VPS
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "Full image name, e.g. ghcr.io/owner/app"
+        required: true
+        type: string
+
+      image_tag:
+        description: "Image tag, e.g. sha-a1b2c3d"
+        required: true
+        type: string
+
+    secrets:
+      VPS_HOST:
+        required: true
+      VPS_USER:
+        required: true
+      VPS_SSH_KEY:
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Full image name"
+        required: true
+        default: "ghcr.io/owner/app"
+
+      image_tag:
+        description: "Image tag to deploy"
+        required: true
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            cd /opt/myapp
+
+            export APP_IMAGE="${{ inputs.image }}:${{ inputs.image_tag }}"
+
+            echo "Deploying ${APP_IMAGE}"
+
+            docker compose -f docker-compose.prod.yml pull app
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            docker image prune -f
